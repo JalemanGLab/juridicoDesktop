@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	--sb-track-color: #f5f5f5;
+	--sb-thumb-color: #404040;
+	--sb-size: 7px;
+}
+
+input {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+input:focus {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+input::-webkit-inner-spin-button,
+input::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+input {
+	-moz-appearance: textfield;
+}
+
+/* Estilos globales para el scroll */
+
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+  }
+  ::-webkit-scrollbar-button {
+	width: 0px;
+	height: 0px;
+  }
+  ::-webkit-scrollbar-thumb {
+	background: var(--sb-thumb-color);
+	border: none;
+	border-radius: 0px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+	background: var(--sb-thumb-color);
+  }
+  ::-webkit-scrollbar-thumb:active {
+	background: var(--sb-thumb-color);
+  }
+  ::-webkit-scrollbar-track {
+	background: var(--sb-track-color);
+	border: none;
+	border-radius: 0px;
+  }
+  ::-webkit-scrollbar-track:hover {
+	background: var(--sb-track-color);
+  }
+  ::-webkit-scrollbar-track:active {
+	background: var(--sb-track-color);
+  }
+  ::-webkit-scrollbar-corner {
+	background: transparent;
+  }
