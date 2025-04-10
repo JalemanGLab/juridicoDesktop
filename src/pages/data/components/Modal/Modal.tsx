@@ -7,6 +7,9 @@ import { LuChartNoAxesCombined } from "react-icons/lu"; //decil
 import { RiMoneyDollarCircleLine } from "react-icons/ri"; //saldo
 import { FaHandHoldingUsd } from "react-icons/fa"; //aportes
 import { MdSimCardDownload } from "react-icons/md"; //descargar plantilla
+import { AiOutlineCheckCircle } from "react-icons/ai";
+import { BiErrorCircle } from "react-icons/bi";
+import { ImSpinner8 } from "react-icons/im";
 import useModal from "./useModal";
 
 const TITLES = {
@@ -56,11 +59,54 @@ const CustomButton = ({
     );
 };
 
+const LoadingState = () => (
+    <div className="flex flex-col items-center justify-center gap-4">
+        <ImSpinner8 className="text-6xl text-neutral-600 animate-spin" />
+        <div className="text-center">
+            <p className="text-neutral-600 text-xl font-medium">
+                Procesando archivo...
+            </p>
+            <p className="text-neutral-500 text-sm">
+                Esto puede tardar unos minutos
+            </p>
+        </div>
+    </div>
+);
+
+const SuccessState = () => (
+    <div className="flex flex-col items-center justify-center gap-4">
+        <AiOutlineCheckCircle className="text-6xl text-green-500" />
+        <div className="text-center">
+            <p className="text-green-600 text-xl font-medium">
+                ¡Archivo cargado con éxito!
+            </p>
+            <p className="text-neutral-500 text-sm">
+                Los datos han sido actualizados correctamente.
+            </p>
+        </div>
+    </div>
+);
+
+const ErrorState = ({ onRetry }: { onRetry: () => void }) => (
+    <div className="flex flex-col items-center justify-center gap-4">
+        <BiErrorCircle className="text-6xl text-red-500" />
+        <div className="text-center">
+            <p className="text-red-600 text-xl font-medium">
+                ¡Error al subir el archivo!
+            </p>
+            <p className="text-neutral-500 text-sm">
+                Los datos no se pudieron actualizar.
+            </p>
+        </div>
+    </div>
+);
+
 const Modal = ({option, setOption}: {option: string, setOption: (option: string) => void}) => {
     const { 
         file, 
         isLoading, 
         isDragging,
+        uploadStatus,
         fileInputRef, 
         handleFileSelect, 
         handleUpload, 
@@ -69,8 +115,15 @@ const Modal = ({option, setOption}: {option: string, setOption: (option: string)
         handleDragEnter,
         handleDragLeave,
         handleDragOver,
-        handleDrop
+        handleDrop,
+        retryUpload,
+        resetModal
     } = useModal({option});
+
+    const handleClose = () => {
+        resetModal();
+        setOption("");
+    };
 
     const icon = () => {
         const Icon = ICONS[option as keyof typeof ICONS];
@@ -79,41 +132,17 @@ const Modal = ({option, setOption}: {option: string, setOption: (option: string)
 
     const title = () => TITLES[option as keyof typeof TITLES] || 'nada';
 
-    return ( 
-        <div onClick={() => setOption("")} className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-            <div className="bg-white flex flex-col p-5 w-[550px] h-[450px] rounded-[20px]" onClick={(e) => e.stopPropagation()}>
-                <div className="flex flex-col gap-2">
-                    <div className="flex justify-between items-center">
-                        <div className="flex flex-row items-center gap-2">
-                            <div className="text-3xl text-neutral-700">{icon()}</div>
-                            <div className="text-xl font-semibold text-neutral-700">{title()}</div>
-                        </div>
-                        <div className="text-2xl font-semibold cursor-pointer" onClick={() => setOption("")}>
-                            <IoMdClose className="text-neutral-700" />
-                        </div>
-                    </div>
-                    <div className="flex flex-row items-center gap-2">
-                        Actualiza la información de tu {title()} en 
-                        <span className="font-semibold">este formato</span> 
-                        <MdSimCardDownload 
-                            className="text-2xl cursor-pointer text-green-600 hover:text-green-700" 
-                            onClick={handleDownloadTemplate}
-                        />
-                    </div>
-                </div>
-                <div className="flex flex-col gap-4 flex-grow justify-between py-6">
-                    <div 
-                        className={`
-                            flex-grow gap-2 border-2 border-dashed rounded-2xl 
-                            flex flex-col items-center justify-center p-6 
-                            transition-colors duration-200
-                            ${isDragging ? 'border-blue-500 bg-blue-50' : file ? 'border-green-500' : 'border-neutral-300'}
-                        `}
-                        onDragEnter={handleDragEnter}
-                        onDragLeave={handleDragLeave}
-                        onDragOver={handleDragOver}
-                        onDrop={handleDrop}
-                    >
+    const renderContent = () => {
+        switch (uploadStatus) {
+            case 'loading':
+                return <LoadingState />;
+            case 'success':
+                return <SuccessState />;
+            case 'error':
+                return <ErrorState onRetry={retryUpload} />;
+            default:
+                return (
+                    <>
                         <div className="text-6xl text-neutral-400 mb-4">
                             {icon()}
                         </div>
@@ -146,21 +175,77 @@ const Modal = ({option, setOption}: {option: string, setOption: (option: string)
                                 />
                             </div>
                         )}
+                    </>
+                );
+        }
+    };
+
+    return ( 
+        <div onClick={handleClose} className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+            <div className="bg-white flex flex-col p-5 w-[550px] h-[450px] rounded-[20px]" onClick={(e) => e.stopPropagation()}>
+                <div className="flex flex-col gap-2">
+                    <div className="flex justify-between items-center">
+                        <div className="flex flex-row items-center gap-2">
+                            <div className="text-3xl text-neutral-700">{icon()}</div>
+                            <div className="text-xl font-semibold text-neutral-700">{title()}</div>
+                        </div>
+                        <div className="text-2xl font-semibold cursor-pointer" onClick={handleClose}>
+                            <IoMdClose className="text-neutral-700" />
+                        </div>
+                    </div>
+                    <div className="flex flex-row items-center gap-2">
+                        Actualiza la información de tu {title()} en 
+                        <span className="font-semibold">este formato</span> 
+                        <MdSimCardDownload 
+                            className="text-2xl cursor-pointer text-green-600 hover:text-green-700" 
+                            onClick={handleDownloadTemplate}
+                        />
+                    </div>
+                </div>
+                <div className="flex flex-col gap-4 flex-grow justify-between py-6">
+                    <div 
+                        className={`
+                            flex-grow gap-2 border-2 border-dashed rounded-2xl 
+                            flex flex-col items-center justify-center p-6 
+                            transition-colors duration-200
+                            ${isDragging ? 'border-blue-500 bg-blue-50' : 
+                              uploadStatus === 'success' ? 'border-green-500' :
+                              uploadStatus === 'error' ? 'border-red-500' :
+                              file ? 'border-green-500' : 'border-neutral-300'}
+                        `}
+                        onDragEnter={handleDragEnter}
+                        onDragLeave={handleDragLeave}
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                    >
+                        {renderContent()}
                     </div>
                     <div className="flex flex-row justify-between">
                         <div className="w-[150px]">
                             <CustomButton 
                                 label="Cancelar" 
-                                onClick={() => setOption("")} 
+                                onClick={handleClose}
                                 type="outline"
                             />
                         </div>
                         <div className="w-[150px]">
-                            <CustomButton 
-                                label="Subir archivo" 
-                                onClick={handleUpload}
-                                disabled={!file || isLoading}
-                            />
+                            {uploadStatus === 'error' ? (
+                                <CustomButton 
+                                    label="Intentar de nuevo" 
+                                    onClick={retryUpload}
+                                />
+                            ) : uploadStatus === 'success' ? (
+                                <CustomButton 
+                                    label="Completado" 
+                                    onClick={handleClose}
+                                />
+                            ) : (
+                                <CustomButton 
+                                    label="Subir archivo" 
+                                    onClick={handleUpload}
+                                    disabled={!file || isLoading}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>

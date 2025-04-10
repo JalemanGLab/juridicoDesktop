@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react';
 import * as XLSX from 'xlsx'; //descargar plantilla
 
+type UploadStatus = 'idle' | 'loading' | 'success' | 'error';
+
 interface UseModalProps {
     option: string;
 }
@@ -9,6 +11,7 @@ const useModal = ({ option }: UseModalProps) => {
     const [file, setFile] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const getTemplateColumns = () => {
@@ -99,35 +102,41 @@ const useModal = ({ option }: UseModalProps) => {
 
         try {
             setIsLoading(true);
+            setUploadStatus('loading');
             const reader = new FileReader();
             
             reader.onload = async (e) => {
-                const data = new Uint8Array(e.target?.result as ArrayBuffer);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const sheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[sheetName];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                try {
+                    const data = new Uint8Array(e.target?.result as ArrayBuffer);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-                // Aquí puedes enviar jsonData a tu backend
-                console.log('Datos listos para enviar:', jsonData);
-                
-                // TODO: Implementar la llamada a la API para guardar los datos
-                // const response = await axios.post('/api/upload-data', {
-                //     type: option,
-                //     data: jsonData
-                // });
+                    // Simular un delay para ver el estado de carga
+                    await new Promise(resolve => setTimeout(resolve, 2000));
 
-                alert('Archivo procesado correctamente');
-                setFile(null);
-                if (fileInputRef.current) {
-                    fileInputRef.current.value = '';
+                    // Aquí puedes enviar jsonData a tu backend
+                    console.log('Datos listos para enviar:', jsonData);
+                    
+                    // TODO: Implementar la llamada a la API para guardar los datos
+                    // const response = await axios.post('/api/upload-data', {
+                    //     type: option,
+                    //     data: jsonData
+                    // });
+
+                    setUploadStatus('success');
+                    // Ya no reseteamos automáticamente
+                } catch (error) {
+                    console.error('Error al procesar el archivo:', error);
+                    setUploadStatus('error');
                 }
             };
 
             reader.readAsArrayBuffer(file);
         } catch (error) {
             console.error('Error al procesar el archivo:', error);
-            alert('Error al procesar el archivo');
+            setUploadStatus('error');
         } finally {
             setIsLoading(false);
         }
@@ -135,6 +144,19 @@ const useModal = ({ option }: UseModalProps) => {
 
     const clearFile = () => {
         setFile(null);
+        setUploadStatus('idle');
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    const retryUpload = () => {
+        setUploadStatus('idle');
+    };
+
+    const resetModal = () => {
+        setFile(null);
+        setUploadStatus('idle');
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -144,6 +166,7 @@ const useModal = ({ option }: UseModalProps) => {
         file,
         isLoading,
         isDragging,
+        uploadStatus,
         fileInputRef,
         handleFileSelect,
         handleUpload,
@@ -152,7 +175,9 @@ const useModal = ({ option }: UseModalProps) => {
         handleDragEnter,
         handleDragLeave,
         handleDragOver,
-        handleDrop
+        handleDrop,
+        retryUpload,
+        resetModal
     };
 };
 
