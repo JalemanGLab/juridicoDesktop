@@ -14,23 +14,22 @@ const usePageLogin = () => {
 	} = useForm<LoginForm>();
 	const navigate = useNavigate();
 	const onSubmit = async (data: LoginForm) => {
-		navigate('/dashboard');
-		// try {
-		// 	setIsLoading(true);
-		// 	console.log(data);
-		// 	const response = await login(data);
-		// 	console.log('response', response);
-		// 	if (response?.status === "success") {
-		// 		toast.success("Inicio de sesión exitoso");
-		// 		navigate('/dashboard');
-		// 	} else {
-		// 		toast.error(response?.message || "Error al iniciar sesión");
-		// 	}
-		// } catch (error: any) {
-		// 	toast.error(error?.message || "Error en la solicitud");
-		// } finally {
-		// 	setIsLoading(false);
-		// }
+		try {
+			setIsLoading(true);
+			const response = await login(data);
+			console.log('response', response);
+			if (response?.status === "success") {
+				localStorage.setItem('authToken', response.data.token);
+				toast.success("Inicio de sesión exitoso");
+				navigate('/dashboard');
+			} else {
+				toast.error(response?.message || "Error al iniciar sesión");
+			}
+		} catch (error: any) {
+			toast.error(error?.message || "Error en la solicitud");
+		} finally {
+			setIsLoading(false);
+		}
 	}
 
 	return {

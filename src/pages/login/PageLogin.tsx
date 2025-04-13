@@ -2,7 +2,7 @@ import logoZolug from '/images/logos/zolug_w.svg'
 import logoCodelab from '/images/logos/codelab_w.svg'
 import { IoDocumentTextOutline, IoLogInOutline } from "react-icons/io5";
 import { FaRegAddressCard } from "react-icons/fa";
-import { MdAlternateEmail } from "react-icons/md";
+import { MdPerson } from "react-icons/md";
 import user01 from '/images/user_agen/user_agen_01.jpg'
 import user02 from '/images/user_agen/user_agen_02.jpg'
 import user03 from '/images/user_agen/user_agen_03.jpg'
@@ -94,9 +94,9 @@ const PageLogin = () => {
 							Usuario
 						</label>
 						<ControllerInputBasic
-							name="email"
-							inputType="email"
-							childrenIcon={<MdAlternateEmail />}
+							name="username"
+							inputType="text"
+							childrenIcon={<MdPerson />}
 							rules={{ required: true }}						
 							register={register}
 							errors={errors}
