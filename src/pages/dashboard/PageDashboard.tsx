@@ -1,6 +1,6 @@
 import Layout from "../../components/layout/Layout";
 
-    const PageDashboard = () => {
+const PageDashboard = () => {
     return ( 
         <Layout>
             <div>

@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 const Menu = () => {
    const navigate = useNavigate();
    const closeSession = () => {
+      localStorage.clear();
       navigate('/login');
    }
    return (
