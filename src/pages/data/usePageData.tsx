@@ -1,18 +1,75 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import * as XLSX from 'xlsx'; //descargar plantilla
+import Modal from '../../components/modal/Modal';
+import { IoMdClose } from "react-icons/io";
+import { LuDatabase } from "react-icons/lu"; //base de datos
+import { BiWallet } from "react-icons/bi"; //cartera
+import { RiDiscountPercentLine } from "react-icons/ri"; //campañas
+import { RiUserReceivedLine } from "react-icons/ri"; //asignacion
+import { LuChartNoAxesCombined } from "react-icons/lu"; //decil
+import { RiMoneyDollarCircleLine } from "react-icons/ri"; //saldo
+import { FaHandHoldingUsd } from "react-icons/fa"; //aportes
+import { MdSimCardDownload } from "react-icons/md"; //descargar plantilla
+import { AiOutlineCheckCircle } from "react-icons/ai";
+import { BiErrorCircle } from "react-icons/bi";
+import { ImSpinner8 } from "react-icons/im";
+
+
+
+const TITLES = {
+    Base: "Base",
+    Cartera: "Cartera",
+    Campañas: "Campañas",
+    Asignacion: "Asignación",
+    Decil: "Decil",
+    Saldo: "Saldo",
+    Aportes: "Aportes"
+} as const;
+
+const ICONS = {
+    Base: LuDatabase,
+    Cartera: BiWallet,
+    Campañas: RiDiscountPercentLine,
+    Asignacion: RiUserReceivedLine,
+    Decil: LuChartNoAxesCombined,
+    Saldo: RiMoneyDollarCircleLine,
+    Aportes: FaHandHoldingUsd
+} as const;
 
 type UploadStatus = 'idle' | 'loading' | 'success' | 'error';
 
-interface UseModalProps {
-    option: string;
-}
+const usePageData = () => {
 
-const useModal = ({ option }: UseModalProps) => {
+    const [option, setOption] = useState<string>("");
+
+    const icon = () => {
+        const Icon = ICONS[option as keyof typeof ICONS];
+        return Icon ? <Icon /> : null;
+    };
+
+    const title = () => TITLES[option as keyof typeof TITLES] || 'nada';
+
     const [file, setFile] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle');
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const {Render,closeModalAction,toggleModal, isOpen} =Modal({icon:icon(),title:title()})
+
+    useEffect(() => {
+        if (option) {
+            toggleModal();
+        }
+    }, [option]);
+
+    useEffect(() => {
+        if (!isOpen) {
+            setOption("");
+            resetModal();
+        }
+    }, [isOpen]);
+
 
     const getTemplateColumns = () => {
         switch (option) {
@@ -177,8 +234,15 @@ const useModal = ({ option }: UseModalProps) => {
         handleDragOver,
         handleDrop,
         retryUpload,
-        resetModal
+        resetModal,
+        Render,
+        closeModalAction,
+        toggleModal,
+        icon,
+        title,
+        option,
+        setOption
     };
 };
 
-export default useModal;
+export default usePageData;
